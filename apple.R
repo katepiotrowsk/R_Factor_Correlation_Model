@@ -1,5 +1,6 @@
 library(data.table)
 library(dplyr)
+library(corrr)
 
 # sets path
 setwd("~/Correlation_Model")
@@ -44,13 +45,32 @@ df[order(as.Date(df$Date, format="%Y%m%d"))]
 group_mean <- aggregate(price ~ isinID+ticker+Month+Year, data = df, mean)
 #group_mean
 
-# df3 <- merge(df,df2,by=c("Month","Year"))
-# df3
-# dplr <- left_join(df, df2, by=c("Month", "Year"))
-# dplr
-# setDT(group_mean2)[group_mean, c("industryAdjustedScore", "weightedAvgScore", "environmentalPillarScore", "goverancePillarScore", "socialPillarScore") := 
-#              .(industryAdjustedScore, weightedAvgScore, environmentalPillarScore, goverancePillarScore, socialPillarScore), on=c("Year", "Month", "price")]
-#df3 <- full_join(group_mean, group_mean2, by = c("isinID", "Month", "Year"), all = TRUE)
 df3 <- group_mean %>% inner_join( group_mean2, 
                                   by=c('isinID'='isinID', 'Year'='Year', 'Month'='Month'))
-df3
+
+
+# test <- cor(df3$price, df3$weightedAvgScore,
+#   method = "pearson")
+
+x <- df3[5]
+y <- df3[6:10]
+
+
+correlate <- df3 %>%
+    group_by(ticker) %>%
+   summarize(r = cor(x, y))
+correlate
+
+# correlate <- df3 %>%
+#  group_by(ticker) %>%
+#  summarize(r = cor(x, y))
+# correlate
+
+
+# df_grp = group_by(df3, ticker)
+# corr = df_grp %>% summarize(corr = cor(x, y))
+# df5 = inner_join(df3, corr)
+# df5
+
+
+
