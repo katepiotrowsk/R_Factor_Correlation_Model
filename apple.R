@@ -1,12 +1,13 @@
 library(data.table)
 library(dplyr)
 library(corrr)
+library(tidyverse)
 
 # sets path
 setwd("~/Correlation_Model")
 
 # gets the MSCI Data
-# MSCI data includes the ESG scores for each ticker
+# MSCI data includes the ESG scosres for each ticker
 msciData <- read.csv(file="MSCI_SUMMARY_SCORES3_Removed.csv")
 
 # assigning relevant variables from the csv file
@@ -59,25 +60,25 @@ df3 <- group_mean %>% inner_join( group_mean2,
                                   by=c('isinID'='isinID', 'Year'='Year', 'Month'='Month'))
 
 
-# test <- cor(df3$price, df3$weightedAvgScore,
-#   method = "pearson")
+industry_corr <- df3 %>%
+  group_by(ticker)  %>%
+  summarize(cor=cor(price, industryAdjustedScore))
 
-x <- df3[5]
-y <- df3[6:10]
+environmental_corr <- df3 %>%
+  group_by(ticker)  %>%
+  summarize(cor=cor(price, environmentalPillarScore))
 
+governance_corr <- df3 %>%
+  group_by(ticker)  %>%
+  summarize(cor=cor(price, goverancePillarScore))
 
-#single_corr <- cor(x, y)
-#single_corr
+social_corr <- df3 %>%
+  group_by(ticker)  %>%
+  summarize(cor=cor(price, socialPillarScore))
 
-#outputs duplicate correlation coefficents 
-correlate <- df3 %>%
-    group_by(ticker) %>%
-   summarize(r = cor(x, y))
-correlate
-#-0.05159548
-#-0.0542 
+df_list <- list(industry_corr, governance_corr, environmental_corr, social_corr)
 
+correlation_table <- df_list %>% reduce(full_join, by='ticker')
+colnames(correlation_table) <- c('ticker', 'industryAdjustedScore', 'governancePillarScore', 'environmentalPillarScore', 'socialPillarScore')
 
-
-
-
+write.csv(correlation_table,"/Users/KatePiotrowski/Correlation_Model/Correlation_Table.csv", row.names = FALSE)
